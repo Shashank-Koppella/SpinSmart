@@ -35,7 +35,7 @@ const sendTestEmail = () => {
 };
 
 // Uncomment the line below to send a test email when the file is executed
-sendTestEmail(); // This line is now uncommented
+// sendTestEmail(); // This line is now commented out
 
 // Export the sendEmail function for use in other files
 module.exports = sendEmail;
