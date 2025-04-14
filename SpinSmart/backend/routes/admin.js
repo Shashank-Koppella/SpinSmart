@@ -74,22 +74,37 @@ router.get('/orders', async (req, res) => {
 
 // Route to update the status of a laundry order
 router.post('/update-status', (req, res) => {
-  const { card_number, status } = req.body;
+  const { userId, status } = req.body;
 
-  if (!card_number || !status) {
-    return res.status(400).json({ message: 'Card number and status are required' });
+  if (!userId || !status) {
+    return res.status(400).json({ error: 'User ID and status are required.' });
   }
 
-  const query = `UPDATE laundry_orders SET status = ? WHERE card_number = ?`;
-  db.run(query, [status, card_number], function (err) {
+  // Update status in the database
+  const query = `UPDATE users SET status = ? WHERE id = ?`;
+  db.run(query, [status, userId], function (err) {
     if (err) {
       console.error('Error updating status:', err.message);
-      return res.status(500).json({ message: 'Failed to update status' });
+      return res.status(500).json({ error: 'Failed to update status.' });
     }
-    if (this.changes === 0) {
-      return res.status(404).json({ message: 'Card number not found' });
-    }
-    res.json({ message: 'Status updated successfully' });
+
+    // Fetch user email to send notification
+    db.get(`SELECT email FROM users WHERE id = ?`, [userId], (err, row) => {
+      if (err || !row) {
+        console.error('Error fetching user email:', err?.message || 'User not found.');
+        return res.status(500).json({ error: 'Failed to fetch user email.' });
+      }
+
+      // Send email notification
+      sendEmail(row.email, 'Status Update', `Your status has been updated to: ${status}`)
+        .then(() => {
+          res.json({ message: 'Status updated and email sent successfully.' });
+        })
+        .catch((emailErr) => {
+          console.error('Error sending email:', emailErr.message);
+          res.status(500).json({ error: 'Status updated but failed to send email.' });
+        });
+    });
   });
 });
 

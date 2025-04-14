@@ -2,40 +2,25 @@ console.log('emailService.js is being executed'); // Add this log
 
 const nodemailer = require('nodemailer');
 
-// Configure the transporter for Gmail
+// Configure the email transporter
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  service: 'Gmail', // Use your email service
   auth: {
-    user: 'spinsmart3@gmail.com', // Your Gmail address
-    pass: 'tjdqxqxvtwvjamzq',    // Replace with your Gmail app password
+    user: 'your-email@gmail.com', // Replace with your email
+    pass: 'your-email-password', // Replace with your email password
   },
 });
 
 // Function to send an email
 const sendEmail = (to, subject, text) => {
   const mailOptions = {
-    from: 'spinsmart3@gmail.com', // Sender's email address
-    to,                          // Recipient's email address
-    subject,                     // Email subject
-    text,                        // Email body
+    from: 'your-email@gmail.com', // Replace with your email
+    to,
+    subject,
+    text,
   };
 
-  transporter.sendMail(mailOptions, (err, info) => {
-    if (err) {
-      console.error('Error sending email:', err);
-    } else {
-      console.log('Email sent:', info.response);
-    }
-  });
+  return transporter.sendMail(mailOptions);
 };
 
-// Function to send a test email
-const sendTestEmail = () => {
-  sendEmail('shashank.varma.koppella@gmail.com', 'Test Email', 'This is a test email from SpinSmart.');
-};
-
-// Uncomment the line below to send a test email when the file is executed
-// sendTestEmail(); // This line is now commented out
-
-// Export the sendEmail function for use in other files
-module.exports = sendEmail;
+module.exports = { sendEmail };

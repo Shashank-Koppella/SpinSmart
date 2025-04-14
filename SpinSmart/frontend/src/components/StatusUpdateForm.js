@@ -1,46 +1,41 @@
 import React, { useState } from 'react';
-import { TextField, Button, Box } from '@mui/material';
+import axios from 'axios';
 
-function StatusUpdateForm() {
-  const [cardNumber, setCardNumber] = useState('');
+const StatusUpdateForm = () => {
+  const [userId, setUserId] = useState('');
   const [status, setStatus] = useState('');
+  const [message, setMessage] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const response = await fetch('http://localhost:5000/api/admin/update-status', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ card_number: cardNumber, status }),
-    });
-    const data = await response.json();
-    alert(data.message);
+    try {
+      const response = await axios.post('/api/admin/update-status', { userId, status });
+      setMessage(response.data.message);
+    } catch (error) {
+      setMessage(error.response?.data?.error || 'An error occurred.');
+    }
   };
 
   return (
-    <Box
-      component="form"
-      onSubmit={handleSubmit}
-      sx={{ display: 'flex', flexDirection: 'column', gap: 2, maxWidth: 400, margin: '0 auto' }}
-    >
-      <TextField
-        label="Card Number"
-        variant="outlined"
-        value={cardNumber}
-        onChange={(e) => setCardNumber(e.target.value)}
+    <form onSubmit={handleSubmit}>
+      <input
+        type="text"
+        placeholder="User ID"
+        value={userId}
+        onChange={(e) => setUserId(e.target.value)}
         required
       />
-      <TextField
-        label="Status"
-        variant="outlined"
+      <input
+        type="text"
+        placeholder="Status"
         value={status}
         onChange={(e) => setStatus(e.target.value)}
         required
       />
-      <Button type="submit" variant="contained" color="primary">
-        Update Status
-      </Button>
-    </Box>
+      <button type="submit">Update Status</button>
+      {message && <p>{message}</p>}
+    </form>
   );
-}
+};
 
 export default StatusUpdateForm;

@@ -15,7 +15,8 @@ const db = new sqlite3.Database('./db/laundry.db', (err) => {
         card_number TEXT UNIQUE NOT NULL,
         email TEXT NOT NULL,
         phone TEXT NOT NULL,
-        password TEXT NOT NULL
+        password TEXT NOT NULL,
+        status TEXT DEFAULT 'active' -- Add status column with default value
       )
     `, (err) => {
       if (err) {
