@@ -61,63 +61,6 @@ support@spinsmart.com
     }
 });
 
-// Route to update the status of a laundry order
-router.post('/update-status', (req, res) => {
-  console.log('Route /api/admin/update-status was hit'); // Log to confirm the route is hit
-
-  const { card_number, status } = req.body;
-
-  console.log(`Received request to update status for card_number: ${card_number} to status: ${status}`);
-
-  const query = `
-    UPDATE laundry_orders
-    SET status = ?
-    WHERE card_number = ?
-  `;
-
-  db.run(query, [status, card_number], (err) => {
-    if (err) {
-      console.error('Error updating laundry status:', err.message);
-      res.status(500).json({ error: 'Failed to update laundry status' });
-    } else {
-      console.log(`Status updated in database for card_number: ${card_number}`);
-
-      if (status === 'Ready for Pickup') {
-        // Fetch the user's email
-        const emailQuery = 'SELECT email FROM users WHERE card_number = ?';
-        db.get(emailQuery, [card_number], (err, row) => {
-          if (err) {
-            console.error('Error fetching user email:', err.message);
-          } else if (row) {
-            const subject = 'Laundry Status Update';
-            const text = `
-Dear Customer,
-
-We are pleased to inform you that the status of your laundry order has been updated.
-
-Current Status: ${status}
-
-Thank you for choosing SpinSmart for your laundry needs. If you have any questions or concerns, please feel free to contact us.
-
-Best regards,  
-The SpinSmart Team  
-support@spinsmart.com  
-+1-800-SPINSMART
-`;
-
-            console.log(`Attempting to send email to: ${row.email}`);
-            sendEmail(row.email, subject, text); // Send email notification
-          } else {
-            console.log(`No user found with card_number: ${card_number}`);
-          }
-        });
-      }
-
-      res.status(200).json({ message: 'Status updated successfully' });
-    }
-  });
-});
-
 // Route to fetch all laundry orders
 router.get('/orders', async (req, res) => {
   try {
@@ -127,6 +70,27 @@ router.get('/orders', async (req, res) => {
     console.error('Error fetching orders:', error.message);
     res.status(500).json({ error: 'Failed to fetch orders' }); // Return error as JSON
   }
+});
+
+// Route to update the status of a laundry order
+router.post('/update-status', (req, res) => {
+  const { card_number, status } = req.body;
+
+  if (!card_number || !status) {
+    return res.status(400).json({ message: 'Card number and status are required' });
+  }
+
+  const query = `UPDATE laundry_orders SET status = ? WHERE card_number = ?`;
+  db.run(query, [status, card_number], function (err) {
+    if (err) {
+      console.error('Error updating status:', err.message);
+      return res.status(500).json({ message: 'Failed to update status' });
+    }
+    if (this.changes === 0) {
+      return res.status(404).json({ message: 'Card number not found' });
+    }
+    res.json({ message: 'Status updated successfully' });
+  });
 });
 
 // Example usage of sendEmail function
