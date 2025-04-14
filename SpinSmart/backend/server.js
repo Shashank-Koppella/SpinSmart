@@ -17,5 +17,5 @@ app.use('/api/admin', adminRoutes); // Register admin routes
 
 // Start the server
 app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`); // Log the server URL
+  console.log(`Server running on http://localhost:${PORT}`); // Log the server URL
 });

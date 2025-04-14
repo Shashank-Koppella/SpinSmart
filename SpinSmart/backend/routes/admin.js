@@ -73,39 +73,29 @@ router.get('/orders', async (req, res) => {
 });
 
 // Route to update the status of a laundry order
-router.post('/update-status', (req, res) => {
+router.post('/update-status', async (req, res) => {
   const { userId, status } = req.body;
 
   if (!userId || !status) {
     return res.status(400).json({ error: 'User ID and status are required.' });
   }
 
-  // Update status in the database
-  const query = `UPDATE users SET status = ? WHERE id = ?`;
-  db.run(query, [status, userId], function (err) {
-    if (err) {
-      console.error('Error updating status:', err.message);
-      return res.status(500).json({ error: 'Failed to update status.' });
+  try {
+    // Update status in the database
+    const result = await db.run(
+      'UPDATE laundry_orders SET status = ? WHERE user_id = ?',
+      [status, userId]
+    );
+
+    if (result.changes === 0) {
+      return res.status(404).json({ error: 'Order not found.' });
     }
 
-    // Fetch user email to send notification
-    db.get(`SELECT email FROM users WHERE id = ?`, [userId], (err, row) => {
-      if (err || !row) {
-        console.error('Error fetching user email:', err?.message || 'User not found.');
-        return res.status(500).json({ error: 'Failed to fetch user email.' });
-      }
-
-      // Send email notification
-      sendEmail(row.email, 'Status Update', `Your status has been updated to: ${status}`)
-        .then(() => {
-          res.json({ message: 'Status updated and email sent successfully.' });
-        })
-        .catch((emailErr) => {
-          console.error('Error sending email:', emailErr.message);
-          res.status(500).json({ error: 'Status updated but failed to send email.' });
-        });
-    });
-  });
+    res.status(200).json({ message: 'Status updated successfully.' });
+  } catch (error) {
+    console.error('Error updating status:', error.message);
+    res.status(500).json({ error: 'Failed to update status.' });
+  }
 });
 
 // Example usage of sendEmail function
